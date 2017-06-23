@@ -4,6 +4,8 @@ project(
   VERSION 0.2
 )
 
+set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
+
 # -------------
 # CMake Options
 # -------------
