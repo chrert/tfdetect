@@ -27,15 +27,14 @@ set(SOURCES
 )
 include_directories("inc")
 #include_directories("/tmp/tensorflow_c/include")
-find_package(TensorflowCC REQUIRED)
+find_package(TensorflowCPUCAPI REQUIRED)
 
 # dynamic library
 set(LIBS ${LIB_NAME})
 add_library(${LIB_NAME} SHARED ${HEADERS} ${SOURCES})
 target_link_libraries(${LIB_NAME}
   ${OpenCV_LIBRARIES}
-  #"-L/tmp/tensorflow_c/lib/ -ltensorflow"
-  TensorflowCC::Static
+  TensorflowCPUCAPI::Shared
 )
 
 # static library
@@ -43,8 +42,7 @@ set(LIBS ${LIBS} ${LIB_NAME}_static)
 add_library(${LIB_NAME}_static STATIC ${HEADERS} ${SOURCES})
 target_link_libraries(${LIB_NAME}_static
   ${OpenCV_LIBRARIES}
-  #"-L/tmp/tensorflow_c/lib -ltensorflow"
-  TensorflowCC::Static
+  TensorflowCPUCAPI::Shared
 )
 
 install(FILES ${HEADERS}

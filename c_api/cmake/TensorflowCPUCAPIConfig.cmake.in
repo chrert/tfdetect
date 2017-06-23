@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/TensorflowCPUCAPITargets.cmake")
+  include("${CMAKE_CURRENT_LIST_DIR}/TensorflowCPUCAPITargets.cmake")
+  set(TensorflowCPUCAPI_FOUND ON)
+endif()
+
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/TensorflowCPUCAPITargets.cmake")
+  include("${CMAKE_CURRENT_LIST_DIR}/TensorflowCPUCAPITargets.cmake")
+  set(TensorflowCPUCAPI_FOUND ON)
+endif()
