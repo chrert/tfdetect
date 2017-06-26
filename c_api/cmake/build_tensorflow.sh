@@ -21,5 +21,5 @@ export PYTHON_LIB_PATH="$(${PYTHON_BIN_PATH} -c 'import site; print(site.getsite
 
 # configure and build
 ./configure
-bazel build -c opt --copt=${CC_OPT_FLAGS} tensorflow:libtensorflow.so
+bazel build --config=opt --copt=${CC_OPT_FLAGS} tensorflow:libtensorflow.so
 bazel shutdown
