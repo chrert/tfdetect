@@ -10,7 +10,7 @@ tensorflow [object detection scripts](https://github.com/tensorflow/models/tree/
 cd c_api
 mkdir build && build
 cmake ..
-make install # you will be prompt for the python binary and site-packages. Just confirm it with by pressing enter
+make install
 
 # compile the library
 cd ../../
