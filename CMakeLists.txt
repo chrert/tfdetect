@@ -3,10 +3,7 @@ project(tfdetect)
 
 set(LIB_NAME ${PROJECT_NAME})
 
-IF(NOT DEFINED CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-ENDIF(NOT DEFINED CMAKE_BUILD_TYPE)
-set(CMAKE_VERBOSE_MAKEFILE false)
+set(CMAKE_BUILD_TYPE "Release")
 
 # Add compiler flags to use C++11
 IF(NOT WIN32)
