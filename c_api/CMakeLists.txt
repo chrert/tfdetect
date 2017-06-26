@@ -1,23 +1,28 @@
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
-project(
-  "tensorflow_cpu_capi"
-  VERSION 0.2
-)
+project("tensorflow_cpu_capi" VERSION 1.0)
 
+# by default, install it locally
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
+# use OVERRIDE_INSTALL_PREFIX to override CMAKE_INSTALL_PREFIX
+if(DEFINED OVERRIDE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX ${OVERRIDE_INSTALL_PREFIX})
+endif()
+message("Install location: ${CMAKE_INSTALL_PREFIX}")
 
 # -------------
 # CMake Options
 # -------------
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
+
 include(CMakePackageConfigHelpers)
 set(CMAKECFG_INSTALL_DIR lib/cmake/TensorflowCPUCAPI)
 
 # --------------------------------------------------------
-# Include External Projects for Shared / Static Tensorflow
+# Include External Projects
 # --------------------------------------------------------
 
 include(TensorflowBase)
@@ -60,8 +65,8 @@ configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/TensorflowCPUCAPIConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/TensorflowCPUCAPIConfig.cmake"
   INSTALL_DESTINATION "${CMAKECFG_INSTALL_DIR}"
-  NO_SET_AND_CHECK_MACRO # TensorflowCC only uses interface libraries
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO # TensorflowCC does not have components
+  NO_SET_AND_CHECK_MACRO # TensorflowCPUCAPI only uses interface libraries
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO # TensorflowCPUCAPI does not have components
 )
 
 # -------
@@ -71,7 +76,7 @@ configure_package_config_file(
 # install all header files
 install(
   DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tensorflow/"
-  DESTINATION include/tensorflow
+  DESTINATION include/tensorflow/
   FILES_MATCHING PATTERN "c_api.h"
 )
 # shared library specific
