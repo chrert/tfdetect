@@ -293,7 +293,7 @@ public:
         }
 
     private:
-        const DType* data_;
+        DType* data_;
         std::array<size_t, D> dims_;
         size_t num_el_;
         
