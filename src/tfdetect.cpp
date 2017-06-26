@@ -12,8 +12,6 @@ namespace tfdetect
 namespace
 {
 
-//namespace tf = tensorflow;
-
 class GraphProtoDetector : public Detector
 {
 public:
@@ -35,13 +33,20 @@ public:
 
   virtual void detect(const cv::Mat &input_image, std::vector<Detection> &results) const throw(std::exception) override
   {
-    cv::Mat converted_image;
-    input_image.convertTo(converted_image, CV_8UC3);
+    cv::Mat im_to_use;
+    if (input_image.depth() != CV_8U)
+    {
+        input_image.convertTo(im_to_use, CV_8UC3);
+    }
+    else
+    {
+        im_to_use = input_image;
+    }
 
     std::vector<TF_Output> input_names(1);
     graph_->GetOperation("image_tensor").Output(0, input_names.at(0));
 
-    tfwrapper::Tensor image_tensor(input_image);
+    tfwrapper::Tensor image_tensor(im_to_use);
     tfwrapper::ref_vector<tfwrapper::Tensor> input_tensors{image_tensor};
 
     std::vector<TF_Output> output_names(3);
@@ -73,7 +78,6 @@ public:
 
 
 private:
-//  std::unique_ptr<tf::Session> session_;
     std::unique_ptr<tfwrapper::Graph> graph_;
     std::unique_ptr<tfwrapper::Session> session_;
 };

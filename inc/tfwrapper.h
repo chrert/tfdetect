@@ -31,14 +31,18 @@ public:
     TFWrapper(const TFWrapper&) = delete;
     TFWrapper& operator=(const TFWrapper&) = delete;
 
+    const T* TFObj() const
+    {
+        return c_obj_.get();
+    }
+    
     T* TFObj()
     {
         return c_obj_.get();
     }
 
 private:
-    using tf_unique_ptr = std::unique_ptr<T, Destructor>;
-    tf_unique_ptr c_obj_;
+    std::unique_ptr<T, Destructor> c_obj_;
 };
 
 //------------------------------------------------------------------------------
@@ -48,17 +52,17 @@ class Status : public TFWrapper<TF_Status>
 public:
     Status() : TFWrapper<TF_Status>(TF_NewStatus, TF_DeleteStatus) {}
 
-    bool IsOk()
+    bool IsOk() const
     {
         return TF_GetCode(TFObj()) == TF_Code::TF_OK;
     }
 
-    std::string Message()
+    std::string Message() const
     {
         return std::string(TF_Message(TFObj()));
     }
 
-    void ThrowRuntimeErrorIfNotOk() throw(std::runtime_error)
+    void ThrowRuntimeErrorIfNotOk() const throw(std::runtime_error)
     {
         if (!IsOk())
         {
@@ -113,27 +117,68 @@ private:
 
 //------------------------------------------------------------------------------
 
-class ImportGraphDefOptions : public TFWrapper<TF_ImportGraphDefOptions>
-{
-public:
-    ImportGraphDefOptions() : TFWrapper<TF_ImportGraphDefOptions>(TF_NewImportGraphDefOptions, TF_DeleteImportGraphDefOptions) {}
-};
-
-//------------------------------------------------------------------------------
-
 class Operation
 {
 public:
     Operation(TF_Operation* op) : op_(op) {}
 
-    void Output(int index, TF_Output& output)
+    void Output(int index, TF_Output& output) const
     {
         output.index = index;
         output.oper = op_;
     }
+    
+    const TF_Operation* TFObj() const
+    {
+        return op_;
+    }
+    
+    TF_Operation* TFObj()
+    {
+        return op_;
+    }
 
 private:
     TF_Operation* op_;
+};
+
+//------------------------------------------------------------------------------
+
+class ImportGraphDefOptions : public TFWrapper<TF_ImportGraphDefOptions>
+{
+public:
+    ImportGraphDefOptions() : TFWrapper<TF_ImportGraphDefOptions>(TF_NewImportGraphDefOptions, TF_DeleteImportGraphDefOptions) {}
+    
+    void AddControlDependency(Operation& operation)
+    {
+        TF_ImportGraphDefOptionsAddControlDependency(TFObj(), operation.TFObj());
+    }
+    
+    void RemapControlDependency(const std::string& src_name, Operation& operation)
+    {
+        TF_ImportGraphDefOptionsRemapControlDependency(TFObj(), src_name.c_str(), operation.TFObj());
+    }
+    
+    void AddInputMapping(const std::string& src_name, size_t src_index, const TF_Output& dst)
+    {
+        TF_ImportGraphDefOptionsAddInputMapping(TFObj(), src_name.c_str(), src_index, dst);
+    }
+    
+    void AddReturnOutput(const std::string& src_name, size_t index)
+    {
+        TF_ImportGraphDefOptionsAddReturnOutput(TFObj(), src_name.c_str(), index);
+    }
+    
+    size_t NumReturnOutputs() const 
+    {
+        return TF_ImportGraphDefOptionsNumReturnOutputs(TFObj());
+    }
+    
+    void SetPrefix(const std::string& prefix)
+    {
+        TF_ImportGraphDefOptionsSetPrefix(TFObj(), prefix.c_str());
+    }
+    
 };
 
 //------------------------------------------------------------------------------
@@ -143,7 +188,7 @@ class Graph : public TFWrapper<TF_Graph>
 public:
     Graph() : TFWrapper<TF_Graph>(TF_NewGraph, TF_DeleteGraph) {}
 
-    void ImportGraphDef(Buffer &buffer, ImportGraphDefOptions &opts) throw(std::exception)
+    void ImportGraphDef(Buffer &buffer, const ImportGraphDefOptions &opts) throw(std::exception)
     {
         Status status;
         TF_GraphImportGraphDef(TFObj(), buffer.TFObj(), opts.TFObj(), status.TFObj());
@@ -199,6 +244,12 @@ class Tensor : public TFWrapper<TF_Tensor>
 {
 public:
 
+    Tensor(const cv::Mat& input_image) throw(std::runtime_error)
+        : TFWrapper<TF_Tensor>(std::bind(construct_tensor_from_cv_mat, input_image), TF_DeleteTensor)
+    {}
+
+    Tensor(TF_Tensor* tensor) : TFWrapper<TF_Tensor>([tensor]{return tensor;}, TF_DeleteTensor) {}
+    
     // inner class for convenient access to tensors' data
     template<typename DType, size_t D>
     class TensorView
@@ -226,20 +277,14 @@ public:
             data_ = static_cast<DType*>(tensor.Bytes());
         }
 
-        DType operator()(std::array<size_t, D> n) const
+        const DType& operator()(std::array<size_t, D> n) const
         {
-            size_t offset = 0;
-            for (size_t i = 0; i < D; ++i)
-            {
-                size_t N = 1;
-                for (size_t j = i + 1; j < D; ++j)
-                {
-                    N *= dims_[j];
-                }
-                offset += N * n[i];
-            }
-
-            return data_[offset];
+            return data_[ComputeOffset(n)];
+        }
+        
+        DType& operator()(std::array<size_t, D> n)
+        {
+            return data_[ComputeOffset(n)];
         }
 
         size_t NumElements() const
@@ -251,13 +296,22 @@ public:
         const DType* data_;
         std::array<size_t, D> dims_;
         size_t num_el_;
+        
+        size_t ComputeOffset(std::array<size_t, D> n) const
+        {
+            size_t offset = 0;
+            for (size_t i = 0; i < D; ++i)
+            {
+                size_t N = 1;
+                for (size_t j = i + 1; j < D; ++j)
+                {
+                    N *= dims_[j];
+                }
+                offset += N * n[i];
+            }
+            return offset;
+        }
     };
-
-    Tensor(const cv::Mat& input_image) throw(std::runtime_error)
-        : TFWrapper<TF_Tensor>(std::bind(construct_tensor_from_cv_mat, input_image), TF_DeleteTensor)
-    {}
-
-    Tensor(TF_Tensor* tensor) : TFWrapper<TF_Tensor>([tensor]{return tensor;}, TF_DeleteTensor) {}
 
     template<typename DType, size_t D>
     TensorView<DType, D> View()
@@ -265,26 +319,32 @@ public:
         return TensorView<DType, D>(*this);
     }
 
-    size_t NumDims()
+    size_t NumDims() const
     {
         return TF_NumDims(TFObj());
     }
 
-    int64_t Dim(size_t dim_index)
+    int64_t Dim(size_t dim_index) const
     {
         return TF_Dim(TFObj(), dim_index);
     }
 
-    TF_DataType Type()
+    TF_DataType Type() const
     {
         return TF_TensorType(TFObj());
     }
 
-    size_t NumBytes()
+    size_t NumBytes() const
     {
         return TF_TensorByteSize(TFObj());
     }
 
+protected:
+    const void* Bytes() const
+    {
+        return TF_TensorData(TFObj());
+    }
+    
     void* Bytes()
     {
         return TF_TensorData(TFObj());
