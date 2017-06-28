@@ -26,7 +26,7 @@ set(SOURCES
 )
 include_directories("inc")
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/c_api/install/lib/cmake")
+set(TensorflowCPUCAPI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/c_api/install/lib/cmake/TensorflowCPUCAPI")
 find_package(TensorflowCPUCAPI REQUIRED)
 
 # dynamic library
