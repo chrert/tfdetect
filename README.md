@@ -20,7 +20,10 @@ The CMake scripts to build the tensorflow C-API are based on the CMake scripts f
 cd c_api
 mkdir build && cd build
 cmake ..
-make install
+# set TF_NEED_CUDA=1 for GPU support.
+# If you do so, you will be prompted to provide some information
+# about your CUDA installation after some time.
+TF_NEED_CUDA=0 make install
 
 # compile the library
 cd ../../
