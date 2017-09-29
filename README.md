@@ -18,13 +18,13 @@ The CMake scripts to build the tensorflow C-API are based on the CMake scripts f
 ```bash
 # install c_api
 cd c_api
-mkdir build && build
+mkdir build && cd build
 cmake ..
 make install
 
 # compile the library
 cd ../../
-mkdir build && build
+mkdir build && cd build
 cmake ..
 make install
 ```
