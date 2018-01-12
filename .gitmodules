@@ -1,0 +1,3 @@
+[submodule "cmake_tensorflow_c"]
+	path = cmake_tensorflow_c
+	url = https://github.com/chrert/cmake_tensorflow_c.git
