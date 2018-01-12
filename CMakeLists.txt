@@ -21,7 +21,7 @@ set(SOURCES
 )
 
 set(LIBS ${LIB_NAME})
-add_library(${LIB_NAME} ${HEADERS} ${SOURCES})
+add_library(${LIB_NAME} SHARED ${HEADERS} ${SOURCES})
 target_include_directories(${LIB_NAME} PUBLIC "inc")
 target_include_directories(${LIB_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${LIB_NAME}
@@ -30,7 +30,7 @@ target_link_libraries(${LIB_NAME}
 )
 # important to fix the dynamic linking of the libraries
 set_target_properties(${LIB_NAME} PROPERTIES
-                      INSTALL_RPATH '${CMAKE_INSTALL_PREFIX}/lib:$ORIGIN/')
+                      INSTALL_RPATH "$ORIGIN/")
 
 install(FILES ${HEADERS}
   DESTINATION include/${LIB_NAME}
