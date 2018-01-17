@@ -3,10 +3,6 @@
 Provides a C++ library to perform inference on models trained with the
 tensorflow [object detection scripts](https://github.com/tensorflow/models/tree/master/object_detection).
 
-## Acknowledgments
-
-The CMake scripts to build the tensorflow C-API are based on the CMake scripts for the C++ API from <https://github.com/FloopCZ/tensorflow_cc>.
-
 ## Prequesites
 
 * OpenCV 2.4 (packages: libopencv-dev)
@@ -16,18 +12,11 @@ The CMake scripts to build the tensorflow C-API are based on the CMake scripts f
 ## Setup
 
 ```bash
-# install c_api
-cd c_api
 mkdir build && cd build
-cmake ..
-# set TF_NEED_CUDA=1 for GPU support.
-# If you do so, you will be prompted to provide some information
-# about your CUDA installation after some time.
-TF_NEED_CUDA=0 make install
-
-# compile the library
-cd ../../
-mkdir build && cd build
-cmake ..
+cmake -DCMAKE_INSTALL_PREFIX=<FILL_IN> ..
+# bazel opts are needed for bazel 9.0
+ADDITIONAL_BAZEL_OPTS='--incompatible_load_argument_is_label=false' TF_NEED_MKL=1 make
+# you can also build with CUDA support. Note that you will be prompted for CUDA specific configurations during the build
+ADDITIONAL_BAZEL_OPTS='--incompatible_load_argument_is_label=false' TF_NEED_MKL=1 TF_NEED_CUDA=1 make
 make install
 ```
