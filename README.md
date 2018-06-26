@@ -20,3 +20,10 @@ ADDITIONAL_BAZEL_OPTS='--incompatible_load_argument_is_label=false' TF_NEED_MKL=
 ADDITIONAL_BAZEL_OPTS='--incompatible_load_argument_is_label=false' TF_NEED_MKL=1 TF_NEED_CUDA=1 make
 make install
 ```
+
+## Why Tensorflow C-API?
+
+One might ask himself, why I'm reinventing the wheel by writing a C++ wrapper for the Tensorflow C-API.
+That's because – unlike the C-API – the tensorflow C++ API is a monster which is linked against many 3rd party libraries.
+In my case, I had a version clash with the OpenCV library when linking TFDetect to an application.
+So instead of solving this issue, I simply wrote the custom wrapper.
